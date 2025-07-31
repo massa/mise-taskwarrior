@@ -22,7 +22,7 @@ git_address() {
 get_available_releases() {
   git_get_tags $(git_address) | \
     grep -v '{}$' | \
-    grep 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | \
+    grep 'refs/tags/v' | \
     cut -d/ -f3 | \
     cut --delimiter v -f2
 }
