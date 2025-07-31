@@ -42,9 +42,9 @@ git_clone() {
 platform() {
   local uname=$(uname -s)
   if [ "$uname" = "Darwin" ]; then
-    echo macos
+    echo $uname
   elif [ "$uname" = "Linux" ]; then
-    echo linux
+    echo $uname
   else
     die "Unsupported platform '$uname'."
   fi
