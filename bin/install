@@ -15,7 +15,7 @@ build_and_install_taskwarrior() {
   cmake --build build
   make -C build package
   echo "Installing Taskwarrior $version to $install ..."
-  tar -xf "build/$(filename $version)" -C "$install" --strip-components 1
+  tar -xf "${download}/tw/build/$(filename $version)" -C "$install" --strip-components 1
   echo "Install complete!"
 }
 
