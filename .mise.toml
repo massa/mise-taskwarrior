@@ -1,0 +1,7 @@
+[tools]
+shellcheck = "latest"
+shfmt = "latest"
+"aqua:bats-core/bats-core" = "latest"
+
+[tasks]
+test = { quiet = true, run = "tests/run_tests.sh" }

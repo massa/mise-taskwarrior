@@ -2,6 +2,31 @@
 
 set -euo pipefail
 
-source "$(dirname "$0")/../lib/utils.sh"
+die() {
+  local message=$1
+  echo "$message" >&2
+  exit 1
+}
+
+git_get_tags() {
+  local url=$1
+  if git --version &> /dev/null; then
+    git ls-remote --tags "$url"
+  else
+    die "'git' required."
+  fi
+}
+
+git_address() {
+  echo 'https://github.com/GothenburgBitFactory/taskwarrior.git'
+}
+
+get_available_releases() {
+  git_get_tags "$(git_address)" |
+    grep -v '{}$' |
+    grep 'refs/tags/v' |
+    cut -d/ -f3 |
+    cut --delimiter v -f2
+}
 
 get_available_releases | tail -1

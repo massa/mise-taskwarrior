@@ -2,22 +2,38 @@
 
 set -euo pipefail
 
-source "$(dirname "$0")/../lib/utils.sh"
+die() {
+  local message=$1
+  echo "$message" >&2
+  exit 1
+}
+
+git_address() {
+  echo 'https://github.com/GothenburgBitFactory/taskwarrior.git'
+}
+
+git_clone() {
+  local version=$1
+  local path=$2
+
+  if git --version &> /dev/null; then
+    git clone "$(git_address)" -b "v$version" "$path"
+  else
+    die "'git' required."
+  fi
+}
 
 git_download() {
   local version=$1
   local path=$2
   local install_type=$3
-  local url_git="https://rakudo.org/dl/rakudo"
 
   if [ "$install_type" != "version" ]; then
     die "Install type '$install_type' not supported."
   fi
 
   echo "Downloading version $version to ${path}/tw ..."
-  git_clone $version "${path}/tw"
-
-  if [ "$?" -eq 0 ]; then
+  if git_clone "$version" "${path}/tw"; then
     echo "Download complete!"
   else
     die "Checksum verification failure."

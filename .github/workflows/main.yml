@@ -1,54 +1,71 @@
-name: CI
+name: Main workflow
 
 on:
-  workflow_dispatch:
   pull_request:
-    paths-ignore:
-      - "**.md"
   push:
-    paths-ignore:
-      - "**.md"
-    branches:
-      - main
   schedule:
     - cron: 0 0 * * 5
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
-  plugin_test:
+  test:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - macos-latest
           - ubuntu-latest
-        source-build:
-          - null
-          - true
-        downloader:
-          - curl
-        include:
-          - os: ubuntu-latest
-            downloader: wget
-            source-build: null
 
     runs-on: ${{ matrix.os }}
 
-    name: asdf-raku on ${{ matrix.os }} using ${{ matrix.downloader }} (ASDF_RAKU_BUILD=${{ matrix.source-build }})
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Mise
+        uses: jdx/mise-action@v2
+
+      - name: Link the plugin
+        run: mise plugins link --force "${PWD}"
+      - name: Smoke test
+        run: mise --verbose x poetry@latest -- poetry --version
+      - run: cat poetry-installer-error-*.log && exit 1
+        if: failure()
+
+      - name: Install current Bash on macOS
+        if: runner.os == 'macOS'
+        run: brew install bash
+
+      - name: Run tests
+        run: |-
+          mise config set settings.trusted_config_paths "${PWD}/tests"
+          mise -C "${PWD}/tests" install
+          make test
+
+  lint:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Remove curl
-        if: ${{ matrix.downloader == 'wget' }}
-        run: sudo apt-get remove curl
+      - name: Mise
+        uses: jdx/mise-action@v2
 
-      - name: Install system packages on macOS
-        if: ${{ runner.os == 'macOS' }}
-        run: brew install coreutils
+      - name: Run ShellCheck
+        run: make lint
 
-      - name: Test plugin
-        uses: asdf-vm/actions/plugin-test@v1
-        env:
-          ASDF_RAKU_BUILD: ${{ matrix.source-build }}
-        with:
-          command: raku --version
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Mise
+        uses: jdx/mise-action@v2
+
+      - name: Run shfmt
+        run: make format-check
