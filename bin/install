@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$(dirname "$0")/../lib/utils.sh"
+
+build_and_install_taskwarrior() {
+  local download=$1
+  local install=$2
+  local version=$3
+
+  cd "{download}/tw"
+  echo "Building Taskwarrior $version ..."
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+  cmake --build build
+  make -C build package
+  echo "Installing Taskwarrior $version to $install ..."
+  tar -xf "build/$(filename $version)" -C "$install" --strip-components 1
+  echo "Install complete!"
+}
+
+build_and_install_taskwarrior "$ASDF_DOWNLOAD_PATH" "$ASDF_INSTALL_PATH" "$ASDF_INSTALL_VERSION"
