@@ -24,7 +24,7 @@ get_available_releases() {
     grep -v '{}$' | \
     grep 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | \
     cut -d/ -f3 | \
-    cut --delimiter v -f2 | \
+    cut --delimiter v -f2
 }
 
 git_clone() {
